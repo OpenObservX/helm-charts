@@ -1,0 +1,81 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: "clickhouse-cluster"
+spec:
+  defaults:
+    templates:
+      podTemplate: clickhouse
+      volumeClaimTemplate: ck-data-dir
+      serviceTemplate: clickhouse-clickhouse-cluster
+  configuration:
+    zookeeper:
+      nodes:
+        - host: {{ .Values.clickhouse.zookeeper.host }}
+          port: {{ .Values.clickhouse.zookeeper.port }}
+      identity: {{ .Values.clickhouse.zookeeper.identity }}
+    clusters:
+      - name: "{{ .Values.clickhouse.clusters.name}}"
+        secret:
+          value: {{ .Values.clickhouse.user.password }}
+        layout:
+          shardsCount: {{ .Values.resources.shardsCount }}
+          replicasCount: {{ .Values.resources.replicas }}
+    users:
+      default/password: {{ .Values.clickhouse.user.password }}
+      default/networks/ip: "::/0"
+  templates:
+    podTemplates:
+      - name: clickhouse
+        metadata:
+          labels:
+            app: clickhouse
+        spec:
+          containers:
+          - name: clickhouse-cluster
+            image: {{ .Values.image.registry }}
+            volumeMounts:
+            - mountPath: /etc/clickhouse-server/config.xml
+              name: chi-clickhouse-cluster-config-file
+              subPath: config.xml
+            resources:
+              {{- toYaml $.Values.resources.resource | nindent 14 }}
+          volumes:
+          - configMap:
+              name: chi-clickhouse-cluster-config-file
+            name: chi-clickhouse-cluster-config-file
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - "clickhouse"
+                  topologyKey: kubernetes.io/hostname
+    volumeClaimTemplates:
+      - name: ck-data-dir
+        spec:
+          storageClassName: {{ .Values.resources.storageClass }}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ $.Values.resources.defaultStorageResourceRequest }}
+    serviceTemplates:
+      - name: clickhouse-clickhouse-cluster
+        generateName: "clickhouse-cluster"
+        spec:
+          ports:
+            - name: native
+              port: 9000
+              targetPort: 9000
+            - name: http
+              port: 8123
+              targetPort: 8123
+            - name: prometheus
+              port: 8001
+              targetPort: 8001
+          type: ClusterIP
+
