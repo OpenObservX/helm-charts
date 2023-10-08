@@ -1,0 +1,47 @@
+{{- $resourceProfile := .Values.global.resourceProfile }}
+{{- $hosts := "" }}
+{{- $replicasValue := index .Values.zookeeper.resources $resourceProfile }}
+{{- $replicasInt := int $replicasValue.replicas }}
+{{- range $i, $e := until $replicasInt -}}
+  {{- $hosts = printf "%szk-clickhouse-%d:2181," $hosts $i }}
+{{- end -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper-exporter
+  labels:
+    app: zookeeper-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper-exporter
+  template:
+    metadata:
+      labels:
+        app: zookeeper-exporter
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/tcp-probe: 'true'
+        prometheus.io/tcp-probe-port: '9141'
+    spec:
+      containers:
+        - name: zookeeper-exporter
+          image: "{{ .Values.global.acos.imagePrefix }}/zookeeper-exporter:v0.1.12"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: healthy
+              containerPort: 9141
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: healthy
+          resources:
+            limits:
+              cpu: 200m
+              memory: 500Mi
+            requests:
+              cpu: 200m
+              memory: 500Mi
+          args:
+            - -zk-hosts="{{- $hosts }}"

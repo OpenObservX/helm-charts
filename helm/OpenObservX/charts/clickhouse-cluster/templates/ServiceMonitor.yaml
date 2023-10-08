@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    product: acos
+    service: zookeeper-exporter
+    acos-prometheus: "true"
+  name: zookeeper-exporter
+spec:
+ endpoints:
+ - interval: 60s
+   port: healthy
+#   metricRelabelings:
+#     - sourceLabels: ["__name__"]
+#       regex: process_open_fds|zk_connection.*|zk_snap_count|zk_uptime|zk_watch_count|zk_znode_count|zk_open_file_descriptor_count|zk_avg_latency
+#       action: keep
+ namespaceSelector:
+   any: true
+ selector:
+   matchLabels:
+     app: zookeeper-exporter

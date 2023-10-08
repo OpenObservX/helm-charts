@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: clickhouse-init
+spec:
+  parallelism: 1
+  completions: 1
+  template:
+    spec:
+      initContainers:
+      - name: check-clickhouse
+        image: {{ .Values.global.acos.imagePrefix }}/clickhouse-server:21.12.3.32
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          set -ex
+          # 测试ClickHouse是否可以访问
+          echo "开始检测"
+          while true; do
+            if  clickhouse-client -m -h clickhouse-cluster --query="SELECT 1" -u default --password abc123; then
+              flag=false
+              for i in `clickhouse-client  -h clickhouse-cluster --password abc123 --query "SELECT * FROM system.clusters where cluster='{{ .Values.clickhouse.clusters.name }}';"|awk '/{{ .Values.clickhouse.clusters.name }}/{print $5}'`
+              do
+                  if clickhouse-client -m -h $i --query="SELECT 1" -u default --password abc123; then
+                      echo "ClickHouse $i is not accessible."
+                      flag=true
+                  else
+                      flag=false
+                      break
+                  fi
+              done
+              if $flag; then
+                  echo "All ClickHouse instances are accessible. Exiting."
+                  break
+              fi
+              sleep 10
+            fi
+          done
+
+      containers:
+      - name: db-init
+        image: {{ $.Values.global.acos.imagePrefix }}/clickhouse-server:21.12.3.32
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          set -ex
+          ExecuteSql(){
+            for i in `clickhouse-client  -h clickhouse-cluster --password abc123 --query "SELECT * FROM system.clusters where cluster='{{ .Values.clickhouse.clusters.name }}';"|awk '/{{ .Values.clickhouse.clusters.name }}/{print $5}'`
+            do
+                clickhouse-client -m -h "$i" --query="$1" -u default --password abc123
+            done
+          }
+
+          ExecuteSql "CREATE DATABASE IF NOT EXISTS dtsmart;"
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_alert  (id Int64,job_id Int64,state Int64,status String,tag_set String,name String,alert_type Int64,trigger_rule String,notify_types String,notify_group String,notification String,notify_recovered Int64,notify_interval String,last_run_time DateTime,last_triggered_time DateTime,run_status_time DateTime,status_update_time DateTime,source String,is_deleted UInt8,tenant_id Int64,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_alert','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_chart  ( id Int64 COMMENT 'id',dashboard_id Int64,data_source_code String,type Int64,content String,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime,tenant_id Int64 ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_chart','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_collect_model  ( id Int64,model_name String,data_index_id Int64,data_index_name String,data_source_id Int64,data_source String,data_source_name String,data_source_type Int64,parser_rule_id Int64,model_json String,official Int64,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_collect_model','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_collect_model_task  ( id Int64,host_id Int64,host_name String,host_ip String,aid String,model_id Int64,model_name String,task_name String,data_source_id Int64,data_source String,data_source_name String,source_type String,data_type Int64,metrics String,run_status Int64,task_status Int64,issue_error_log String,start_time Int64,last_run DateTime,last_read_data_count Int64,read_data_count Int64,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_collect_model_task','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_dashboard  ( id Int64,name String,tag_set String,type Int64,data_source_code String,dashboard_type Int64,parent_id Int64,config String,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime,tenant_id Int64,dashboard_sort Int64,path String ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_dashboard','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_data_index  ( id Int64,data_index_name String,tag_set String,alias String,tag_list String,index_type Int64,storage_time String,official Int64,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_data_index','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_host  ( id Int64,host_ip String,host_name String,aid String,agent_version String,upgrade_status Int64,upgrade_msg String,device_os String,install_dir String,device_ext String,last_heart_beat DateTime,tag_set String,host_meta_id Int64,official Int64,forwarder_id Int64,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_host','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_inspect_record  ( id Int64,task_id Int64,record_data_id Int64,task_name String,task_type Int64,name String,template_name String,start_time DateTime,end_time DateTime,task_run_time DateTime,status Int64,template_snapshoot String,img_report String,pdf_report String,word_report String,inspect_result String,error_msg String,is_deleted Int64,tenant_id Int64,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_inspect_record','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_inspect_template  ( id Int64,tag_set String,name String,description String,content String,time_range String,send_type Int64,notify_types String,notify_group_ids String,template_config_id Int64,is_deleted UInt8,tenant_id Int64,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_inspect_template','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_resource  ( id Int64,ci_instance_id String,ci_instance_name String,ci_resource String,cluster_name String,ref_list String,namespace String,hostname String,catalog String,release_status UInt8,release_time String,module_levels String,is_deleted UInt8,tenant_id Int64,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime,attributes String,tag_set String ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_resource','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_resource_optimization_suggest  ( id Int64,resource_id Int64,ci_resource String,suggest_type String,billing_item_id Int64,billing_item_name String,spec_config String,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime ) ENGINE = MySQL('mysql:3306', 'dtsmart','dt_resource_optimization_suggest','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE DATABASE IF NOT EXISTS alert ;"
+          ExecuteSql "CREATE TABLE IF NOT EXISTS dtsmart.dt_arms_app (id Int64,pid String,app_name String,status UInt8,tag_set String,app_type String,site_type String,is_deleted UInt8,tenant_id Int64,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime)ENGINE = MySQL('mysql:3306','dtsmart','dt_arms_app','{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE TABLE dtsmart.dt_arms_service_group (id Int64,name String,members String,tag_set String,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime) ENGINE = MySQL('mysql:3306', 'dtsmart', 'dt_arms_service_group', '{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+          ExecuteSql "CREATE TABLE dtsmart.dt_arms_service_group_app (id Int64,pid String,app_name String,app_type String,type String,group_id String,tenant_id Int64,is_deleted UInt8,creator Int64,modifier Int64,gmt_create DateTime,gmt_modified DateTime) ENGINE = MySQL('mysql:3306', 'dtsmart', 'dt_arms_service_group_app', '{{ $.Values.global.acos.mysql.user }}', '{{ $.Values.global.acos.mysql.password }}');"
+
+      restartPolicy: Never
+  backoffLimit: 3
