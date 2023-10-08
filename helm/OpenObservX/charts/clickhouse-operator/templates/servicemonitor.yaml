@@ -2,10 +2,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "clickhouse-operator.fullname" . }}
+  name: {{ include "altinity-clickhouse-operator.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "clickhouse-operator.labels" . | nindent 4 }}
+    {{- include "altinity-clickhouse-operator.labels" . | nindent 4 }}
   {{- if .Values.serviceMonitor.additionalLabels }}
     {{- toYaml .Values.serviceMonitor.additionalLabels | nindent 4 }}
   {{- end }}
@@ -14,5 +14,5 @@ spec:
     - port: clickhouse-operator-metrics
   selector:
     matchLabels:
-      {{- include "clickhouse-operator.selectorLabels" . | nindent 6 }}
+      {{- include "altinity-clickhouse-operator.selectorLabels" . | nindent 6 }}
 {{- end }}

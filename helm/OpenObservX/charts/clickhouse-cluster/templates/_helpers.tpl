@@ -72,3 +72,4 @@ metadata:
   labels:
     {{- include "clickhouse-cluster.labels" . | nindent 4 }}
 {{- end }}
+

@@ -5,9 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: clickvisual/clickvisual
+  repository: registry.cn-hangzhou.aliyuncs.com/openobservx/clickvisual
   pullPolicy: IfNotPresent
-  tag: ""
 
 imagePullSecrets: []
 nameOverride: "clickvisual"
@@ -66,3 +65,4 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+

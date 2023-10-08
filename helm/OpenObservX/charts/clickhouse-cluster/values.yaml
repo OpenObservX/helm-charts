@@ -1,66 +1,42 @@
 image:
-  registry: clickhouse/clickhouse-server:22.8.16.32
+  registry: registry.cn-hangzhou.aliyuncs.com/openobservx/clickhouse-server:22.8.16.32
+
 clickhouse:
   zookeeper:
     host: zk-client-clickhouse
     port: 2181
-    identity: acos:acos2022
+    identity: openobservx:openobservx
   clusters:
-    name: dtstack
+    name: openobservx
   user:
-    password: "abc123"
+    password: "OpenObservX"
 resources:
-  low:
-    shardsCount: 1
-    replicas: 1
-    defaultStorageResourceRequest: "500Gi"
-    resource:
-      limits:
-        cpu: 1000m
-        memory: 2048Mi
-      requests:
-        cpu: 1000m
-        memory: 2048Mi
-  high:
-    shardsCount: 2
-    replicas: 2
-    defaultStorageResourceRequest: "1000Gi"
-    resource:
-      limits:
-        cpu: 6000m
-        memory: 12288M
-      requests:
-        cpu: 6000m
-        memory: 12288M
-
-
+  shardsCount: 1
+  replicas: 2
+  defaultStorageResourceRequest: "100Gi"
+  storageClass: ""
+  resource:
+    limits:
+      cpu: 1000m
+      memory: 2048Mi
+    requests:
+      cpu: 1000m
+      memory: 2048Mi
 # zookeeper configuration
 zookeeper:
-
   # configuration for zookeeper instance
-  image: sealos.hub:5000/acos/zookeeper:3.6.2
-  imagePullPolicy: Always
+  image: registry.cn-hangzhou.aliyuncs.com/openobservx/zookeeper:3.6.2
+  imagePullPolicy: IfNotPresent
   imagePullSecrets: "" # 拉取镜像所需secret
 
   resources:
-    low:
-      replicas: 1
-      defaultStorageResourceRequest: '50Gi'
-      resource:
-        limits:
-          cpu: 1000m
-          memory: 2048Mi
-        requests:
-          cpu: 1000m
-          memory: 2048Mi
-    high:
-      replicas: 3
-      defaultStorageResourceRequest: '500Gi'
-      resource:
-        limits:
-          cpu: 4000m
-          memory: 8192Mi
-        requests:
-          cpu: 2000m
-          memory: 4096Mi
-
+    replicas: 1
+    defaultStorageResourceRequest: "50Gi"
+    storageClass: ""
+    resource:
+      limits:
+        cpu: 500m
+        memory: 1024Mi
+      requests:
+        cpu: 500m
+        memory: 1024Mi

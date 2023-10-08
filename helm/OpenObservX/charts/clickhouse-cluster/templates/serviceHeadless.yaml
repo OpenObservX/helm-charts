@@ -1,6 +1,6 @@
-{{- $resourceProfile := .Values.global.resourceProfile }}
-{{- $replicasValue := index .Values.zookeeper.resources $resourceProfile }}
+{{- $replicasValue := .Values.zookeeper.resources }}
 {{- $replicasInt := int $replicasValue.replicas }}
+
 
 {{- range $i := until $replicasInt }}
 apiVersion: v1
@@ -8,7 +8,6 @@ kind: Service
 metadata:
   # DNS would be like zookeeper.zoons
   name: zk-clickhouse-{{ $i }}
-  namespace: acos
   labels:
     app: zk-clickhouse
 spec:
@@ -21,3 +20,4 @@ spec:
     what: node
     statefulset.kubernetes.io/pod-name: zk-clickhouse-{{ $i }}
 {{- end }}
+

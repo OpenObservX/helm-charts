@@ -7,7 +7,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ printf "%s-files" (include "clickhouse-operator.fullname" .) }}
+  name: {{ printf "%s-files" (include "altinity-clickhouse-operator.fullname" .) }}
   namespace: {{ .Release.Namespace }}
-  labels: {{ include "clickhouse-operator.labels" . | nindent 4 }}
+  labels: {{ include "altinity-clickhouse-operator.labels" . | nindent 4 }}
 data: {{ tpl (toYaml .Values.configs.files) . | nindent 2 }}

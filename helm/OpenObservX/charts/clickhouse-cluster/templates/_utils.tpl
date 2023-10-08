@@ -8,7 +8,7 @@
 {{- $maxHeap := 1024 }}
 {{- $XMNHeap := 1024 }}
 
-{{- $res := (index .Values.zookeeper.resources .Values.global.resourceProfile).resource }}
+{{- $res := .Values.zookeeper.resources.resource }}
 {{- $requestMem := $res.requests.memory }}
 {{- $limitsMem := $res.limits.memory }}
 
@@ -50,3 +50,4 @@ request mem
 - name: JVM_XMN
   value: {{ printf "%vM" (div $XMNHeap 100) }}
 {{- end }}
+

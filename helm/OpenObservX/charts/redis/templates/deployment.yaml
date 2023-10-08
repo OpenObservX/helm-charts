@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redis.name" . }}
+  name: {{ include "redis.fullname" . }}
   labels:
     {{- include "redis.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
@@ -31,11 +31,11 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.global.acos.imagePrefix }}/redis:6.2.6"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: tcp
-              containerPort: 6379
+            - name: redis
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
               initialDelaySeconds: 15
@@ -45,7 +45,7 @@ spec:
               tcpSocket:
                 port: tcp
           resources:
-            {{- toYaml (index .Values.resources .Values.global.resourceProfile).resource | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

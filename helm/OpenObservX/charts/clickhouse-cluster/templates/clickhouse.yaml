@@ -19,8 +19,8 @@ spec:
         secret:
           value: {{ .Values.clickhouse.user.password }}
         layout:
-          shardsCount: {{ (index .Values.resources .Values.global.resourceProfile).shardsCount }}
-          replicasCount: {{ (index .Values.resources .Values.global.resourceProfile).replicas }}
+          shardsCount: {{ .Values.resources.shardsCount }}
+          replicasCount: {{ .Values.resources.replicas }}
     users:
       default/password: {{ .Values.clickhouse.user.password }}
       default/networks/ip: "::/0"
@@ -30,20 +30,16 @@ spec:
         metadata:
           labels:
             app: clickhouse
-          annotations:
-            prometheus.io/scrape: 'true'
-            prometheus.io/tcp-probe: 'true'
-            prometheus.io/tcp-probe-port: '8123,9000'
         spec:
           containers:
           - name: clickhouse-cluster
-            image: {{ .Values.global.acos.imagePrefix }}/clickhouse-server:21.12.3.32
+            image: {{ .Values.image.registry }}
             volumeMounts:
             - mountPath: /etc/clickhouse-server/config.xml
               name: chi-clickhouse-cluster-config-file
               subPath: config.xml
             resources:
-              {{- toYaml (index $.Values.resources $.Values.global.resourceProfile).resource | nindent 14 }}
+              {{- toYaml $.Values.resources.resource | nindent 14 }}
           volumes:
           - configMap:
               name: chi-clickhouse-cluster-config-file
@@ -61,12 +57,12 @@ spec:
     volumeClaimTemplates:
       - name: ck-data-dir
         spec:
-          storageClassName: {{ .Values.global.acos.storageClass }}
+          storageClassName: {{ .Values.resources.storageClass }}
           accessModes:
             - ReadWriteOnce
           resources:
             requests:
-              storage: {{ (index $.Values.resources $.Values.global.resourceProfile).defaultStorageResourceRequest }}
+              storage: {{ $.Values.resources.defaultStorageResourceRequest }}
     serviceTemplates:
       - name: clickhouse-clickhouse-cluster
         generateName: "clickhouse-cluster"
@@ -82,3 +78,4 @@ spec:
               port: 8001
               targetPort: 8001
           type: ClusterIP
+

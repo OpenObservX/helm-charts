@@ -4,13 +4,14 @@
 # SINGULAR=clickhouseinstallationtemplate
 # PLURAL=clickhouseinstallationtemplates
 # SHORT=chit
+# OPERATOR_VERSION=0.21.3
 #
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: clickhouseinstallationtemplates.clickhouse.altinity.com
   labels:
-    clickhouse.altinity.com/chop: 0.21.0
+    clickhouse.altinity.com/chop: 0.21.3
 spec:
   group: clickhouse.altinity.com
   scope: Namespaced
@@ -222,6 +223,13 @@ spec:
                   description: "List of hosts with tables created by the operator"
                   items:
                     type: string
+                usedTemplates:
+                  type: array
+                  description: "List of templates used to build this CHI"
+                  x-kubernetes-preserve-unknown-fields: true
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
             spec:
               type: object
               # x-kubernetes-preserve-unknown-fields: true
@@ -289,6 +297,11 @@ spec:
                       enum:
                         - "auto"
                         - "manual"
+                    chiSelector:
+                      type: object
+                      description: "optional, define selector applying ClickHouseInstallationTemplate inside ClickHouseInstallation"
+                      # nullable: true
+                      x-kubernetes-preserve-unknown-fields: true
                 reconciling:
                   type: object
                   description: "optional, allows tuning reconciling cycle for ClickhouseInstallation from clickhouse-operator side"

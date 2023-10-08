@@ -10,9 +10,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "clickhouse-operator.fullname" . }}
+  name: {{ include "altinity-clickhouse-operator.fullname" . }}
   #namespace: kube-system
-  labels: {{ include "clickhouse-operator.labels" . | nindent 4 }}
+  labels: {{ include "altinity-clickhouse-operator.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
@@ -48,6 +48,15 @@ rules:
       - ""
     resources:
       - persistentvolumes
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
       - pods
     verbs:
       - get
@@ -55,6 +64,7 @@ rules:
       - patch
       - update
       - watch
+      - delete
   - apiGroups:
       - apps
     resources:
@@ -79,7 +89,7 @@ rules:
   - apiGroups:
       - apps
     resourceNames:
-      - {{ include "clickhouse-operator.fullname" . }}
+      - {{ include "altinity-clickhouse-operator.fullname" . }}
     resources:
       - deployments
     verbs:

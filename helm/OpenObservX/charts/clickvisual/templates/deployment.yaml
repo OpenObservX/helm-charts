@@ -37,7 +37,7 @@ spec:
               value: "stderr"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - /bin/sh
@@ -74,4 +74,5 @@ spec:
           sources:
             - configMap:
                 name: {{ .Chart.Name }}
+
 

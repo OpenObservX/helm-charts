@@ -82,7 +82,7 @@ spec:
     matchLabels:
       app: zk-clickhouse
   serviceName: zk-server-clickhouse
-  replicas: {{ (index .Values.zookeeper.resources .Values.global.resourceProfile).replicas }}
+  replicas: {{ .Values.zookeeper.resources.replicas }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: Parallel
@@ -115,9 +115,9 @@ spec:
       containers:
         - name: zookeeper
           imagePullPolicy: {{ $.Values.zookeeper.imagePullPolicy }}
-          image: {{ $.Values.global.acos.imagePrefix }}/zookeeper:3.6.2
+          image: {{ $.Values.zookeeper.image }}
           resources:
-            {{- toYaml (index .Values.zookeeper.resources .Values.global.resourceProfile).resource | nindent 12 }}
+            {{- toYaml .Values.zookeeper.resources.resource | nindent 12 }}
           ports:
             - containerPort: 2181
               name: client
@@ -130,7 +130,7 @@ spec:
             - -x
             - -c
             - |
-              SERVERS={{ (index .Values.zookeeper.resources .Values.global.resourceProfile).replicas }} &&
+              SERVERS={{ .Values.zookeeper.resources.replicas }} &&
               HOST=`hostname -s` &&
               DOMAIN=`hostname -d` &&
               CLIENT_PORT=2181 &&
@@ -214,7 +214,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: {{ $.Values.global.acos.storageClass }}
+        storageClassName: {{ $.Values.zookeeper.resources.storageClass }}
         resources:
           requests:
-            storage: {{ (index $.Values.zookeeper.resources $.Values.global.resourceProfile).defaultStorageResourceRequest }}
+            storage: {{ $.Values.zookeeper.resources.defaultStorageResourceRequest }}
