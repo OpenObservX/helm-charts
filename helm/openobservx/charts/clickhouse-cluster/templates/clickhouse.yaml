@@ -40,9 +40,12 @@ spec:
               subPath: config.xml
             resources:
               {{- toYaml $.Values.resources.resource | nindent 14 }}
+<<<<<<< HEAD:helm/openobservx/charts/clickhouse-cluster/templates/clickhouse.yaml
             env:
             - name: TZ
               value: Asia/Shanghai
+=======
+>>>>>>> 76813691d6473344d01b17ec25cb504eb5fb3138:helm/OpenObservX/charts/clickhouse-cluster/templates/clickhouse.yaml
           volumes:
           - configMap:
               name: chi-clickhouse-cluster-config-file
