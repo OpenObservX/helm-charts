@@ -1,0 +1,29 @@
+apiVersion: loggie.io/v1beta1
+kind:  ClusterLogConfig
+metadata:
+  name: openobservx
+spec:
+  selector:
+    type: pod
+    labelSelector:
+      app.kubernetes.io/name: clickvisual
+  pipeline:
+    sources: |
+      - type: file
+        name: messages
+        paths:
+        - stdout
+    interceptors: |
+      - type: schema
+        addMeta:
+          timestamp:
+            key: "_timestamp_"
+            location: Local
+            layout: 2006-01-02 15:04:05
+      - type: transformer
+        actions:
+          - action: underRoot(fields)
+    sink: |
+      type: kafka
+      brokers: ["kafka.openobservx.svc.cluster.local:9092"] # kafka地址
+      topic: "loggie"   # topic名称

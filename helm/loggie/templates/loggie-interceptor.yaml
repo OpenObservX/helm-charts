@@ -1,0 +1,15 @@
+apiVersion: loggie.io/v1beta1
+kind: Interceptor
+metadata:
+  name: openobservx
+spec:
+  interceptors: |
+    - type: schema
+      addMeta:
+        timestamp:
+          key: "_timestamp_"
+          location: Local
+          layout: 2006-01-02T15:04:05Z07:00
+    - type: transformer
+        actions:
+          - action: underRoot(fields)

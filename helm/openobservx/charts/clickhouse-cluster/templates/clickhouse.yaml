@@ -40,6 +40,9 @@ spec:
               subPath: config.xml
             resources:
               {{- toYaml $.Values.resources.resource | nindent 14 }}
+            env:
+            - name: TZ
+              value: Asia/Shanghai
           volumes:
           - configMap:
               name: chi-clickhouse-cluster-config-file

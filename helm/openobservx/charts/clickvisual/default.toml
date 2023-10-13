@@ -25,7 +25,7 @@ port = 19011
 
 [logger]
 # log level, avaliable level: "debug", "info", "warn", "error", "panic", "fatal"
-level = "info"
+level = "debug"
 name = "clickvisual.log"
 
 # if isMultiCopy is true

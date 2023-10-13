@@ -727,6 +727,23 @@ additionalResources:
                 <events>true</events>
                 <asynchronous_metrics>true</asynchronous_metrics>
             </prometheus>
+            <graphite_rollup>
+                <pattern>
+                    <regexp>click_cost</regexp>
+                    <function>any</function>
+                    <retention>
+                        <age>0</age>
+                        <precision>3600</precision>
+                    </retention>
+                </pattern>
+                <default>
+                    <function>max</function>
+                    <retention>
+                        <age>0</age>
+                        <precision>60</precision>
+                    </retention>
+                </default>
+            </graphite_rollup>
         </clickhouse>
 
 dashboards:

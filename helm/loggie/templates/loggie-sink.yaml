@@ -1,0 +1,9 @@
+apiVersion: loggie.io/v1beta1
+kind: Sink
+metadata:
+ name: kafka
+spec:
+ sink: |
+   type: kafka
+   brokers: ["kafka.openobservx.svc.cluster.local:9092"] # kafka地址
+   topic: "loggie"   # topic名称
